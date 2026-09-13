@@ -2,7 +2,7 @@
 import {computed, onBeforeUnmount, ref} from 'vue'
 import {playClickSound, playDigSound, playHoverSound, toggleAllAudio, unlockAudio} from '../audio.js'
 
-const props = defineProps({soundEnabled: Boolean})
+const props = defineProps({soundEnabled: Boolean, isOnline: Boolean})
 const emit = defineEmits(['sound-change', 'back'])
 
 const ROUND_SECONDS = 60
@@ -269,7 +269,13 @@ onBeforeUnmount(() => {
     <header class="contract-header">
       <button class="plain-button" type="button" @click="emit('back')">← 返回首页</button>
       <div class="contract-title"><div><strong>大包干模式</strong><small>包产到户 · 多劳多得</small></div></div>
-      <button class="sound-toggle" type="button" :aria-label="props.soundEnabled ? '关闭游戏音效' : '开启游戏音效'" @click="toggleSound">{{ props.soundEnabled ? '🔊' : '🔇' }}</button>
+      <div class="header-actions">
+        <div class="connection-badge" :class="props.isOnline ? 'online' : 'offline'" role="status" aria-live="polite">
+          <span aria-hidden="true">{{ props.isOnline ? '●' : '✓' }}</span>
+          {{ props.isOnline ? '在线模式' : '离线模式' }}
+        </div>
+        <button class="sound-toggle" type="button" :aria-label="props.soundEnabled ? '关闭游戏音效' : '开启游戏音效'" @click="toggleSound">{{ props.soundEnabled ? '🔊' : '🔇' }}</button>
+      </div>
     </header>
 
     <template v-if="phase === 'game'">

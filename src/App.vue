@@ -1,5 +1,5 @@
 <script setup>
-import {onBeforeUnmount, ref} from 'vue'
+import {onBeforeUnmount, onMounted, ref} from 'vue'
 import {
   playClickSound,
   playHoverSound,
@@ -14,6 +14,7 @@ const showReadyMessage = ref(false)
 const showModeDialog = ref(false)
 const selectedModeName = ref('')
 const soundEnabled = ref(true)
+const isOnline = ref(navigator.onLine)
 const currentScreen = ref('intro')
 let lastHoveredButton = null
 
@@ -67,7 +68,20 @@ function handleButtonClick(event) {
   if (event.target.closest?.('button')) playClickSound()
 }
 
-onBeforeUnmount(stopAudio)
+function updateConnectionStatus() {
+  isOnline.value = navigator.onLine
+}
+
+onMounted(() => {
+  window.addEventListener('online', updateConnectionStatus)
+  window.addEventListener('offline', updateConnectionStatus)
+})
+
+onBeforeUnmount(() => {
+  window.removeEventListener('online', updateConnectionStatus)
+  window.removeEventListener('offline', updateConnectionStatus)
+  stopAudio()
+})
 </script>
 
 <template>
@@ -86,16 +100,22 @@ onBeforeUnmount(stopAudio)
         <span class="brand-mark" aria-hidden="true">穗</span>
         <div><strong>生产队大考验</strong><span>劳动与收获模拟体验</span></div>
       </div>
-      <button
-          class="sound-button"
-          type="button"
-          :class="{ muted: !soundEnabled }"
-          :aria-label="soundEnabled ? '关闭游戏音效' : '开启游戏音效'"
-          :title="soundEnabled ? '关闭游戏音效' : '开启游戏音效'"
-          @click="toggleSound"
-      >
-        <span aria-hidden="true">{{ soundEnabled ? '🔊' : '🔇' }}</span>
-      </button>
+      <div class="header-actions">
+        <div class="connection-badge" :class="isOnline ? 'online' : 'offline'" role="status" aria-live="polite">
+          <span aria-hidden="true">{{ isOnline ? '●' : '✓' }}</span>
+          {{ isOnline ? '在线模式' : '离线模式' }}
+        </div>
+        <button
+            class="sound-button"
+            type="button"
+            :class="{ muted: !soundEnabled }"
+            :aria-label="soundEnabled ? '关闭游戏音效' : '开启游戏音效'"
+            :title="soundEnabled ? '关闭游戏音效' : '开启游戏音效'"
+            @click="toggleSound"
+        >
+          <span aria-hidden="true">{{ soundEnabled ? '🔊' : '🔇' }}</span>
+        </button>
+      </div>
     </header>
 
     <section class="hero-section">
@@ -199,12 +219,14 @@ onBeforeUnmount(stopAudio)
   <CollectiveGame
       v-else-if="currentScreen === 'collective'"
       :sound-enabled="soundEnabled"
+      :is-online="isOnline"
       @sound-change="syncSoundState"
       @back="returnHome"
   />
   <ContractGame
       v-else-if="currentScreen === 'contract'"
       :sound-enabled="soundEnabled"
+      :is-online="isOnline"
       @sound-change="syncSoundState"
       @back="returnHome"
   />

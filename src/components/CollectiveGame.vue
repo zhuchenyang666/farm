@@ -8,7 +8,7 @@ import {
   unlockAudio,
 } from '../audio.js'
 
-const props = defineProps({soundEnabled: Boolean})
+const props = defineProps({soundEnabled: Boolean, isOnline: Boolean})
 const emit = defineEmits(['sound-change', 'back'])
 
 const ROUND_SECONDS = 60
@@ -291,9 +291,15 @@ onBeforeUnmount(() => {
     <header class="game-header">
       <button class="back-button" type="button" @click="emit('back')">← 返回首页</button>
       <div class="game-title"><div><strong>大锅饭模式</strong><small>人民公社 · 集体劳动</small></div></div>
-      <button class="game-sound" type="button" :aria-label="props.soundEnabled ? '关闭游戏音效' : '开启游戏音效'" @click="toggleSound">
-        {{ props.soundEnabled ? '🔊' : '🔇' }}
-      </button>
+      <div class="header-actions">
+        <div class="connection-badge" :class="props.isOnline ? 'online' : 'offline'" role="status" aria-live="polite">
+          <span aria-hidden="true">{{ props.isOnline ? '●' : '✓' }}</span>
+          {{ props.isOnline ? '在线模式' : '离线模式' }}
+        </div>
+        <button class="game-sound" type="button" :aria-label="props.soundEnabled ? '关闭游戏音效' : '开启游戏音效'" @click="toggleSound">
+          {{ props.soundEnabled ? '🔊' : '🔇' }}
+        </button>
+      </div>
     </header>
 
     <template v-if="phase === 'playing'">
